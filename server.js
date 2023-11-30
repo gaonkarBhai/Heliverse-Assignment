@@ -5,6 +5,7 @@ import morgan from "morgan";
 import connectDB from "./config/conn.js";
 import color from 'colors'
 import userRoutes from './routes/usersRoute.js'
+import teamRoutes from './routes/teamRoutes.js'
 
 dotenv.config(); //configure env
 
@@ -20,6 +21,8 @@ app.use(express.json());
 
 // routes
 app.use("/api", userRoutes);
+app.use("/api", teamRoutes);
+
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Happy Coding!" });
 });
