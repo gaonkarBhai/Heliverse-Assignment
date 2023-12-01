@@ -1,0 +1,10 @@
+/* Add this to your CSS */
+#navbar-menu {
+    display: none;
+    /* hide initially */
+}
+
+#navbar-menu.show {
+    display: flex;
+    /* show when the "show" class is present */
+}

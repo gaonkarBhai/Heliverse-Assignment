@@ -1,6 +1,4 @@
 
-serverside
-`
 | HTTP Method | Endpoint          | Description                     |
 |-------------|-------------------|---------------------------------|
 | GET         | /users            | Retrieve all users              |
@@ -10,4 +8,4 @@ serverside
 | DELETE      | /users/:id        | Delete a user by ID             |
 | POST        | /team             | Create a new team               |
 | GET         | /team/:id         | Retrieve a single team by ID     |
-`
+
