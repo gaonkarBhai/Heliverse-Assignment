@@ -8,9 +8,9 @@ function App() {
   return (
     <>
       <Nav />
-      <Home/>
+      <Home />
     </>
-  )
+  );
 }
 
 export default App;

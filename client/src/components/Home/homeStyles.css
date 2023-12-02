@@ -1,0 +1,10 @@
+.ant-switch-handle{
+    border:1px solid #000;
+    border-radius: 50%;
+}
+.ant-switch.css-dev-only-do-not-override-2q8sxy{
+    background-color: #d4d1d1;
+}
+.ant-switch.css-dev-only-do-not-override-2q8sxy.ant-switch-checked{
+    background-color: #1890ff;
+}

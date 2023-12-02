@@ -1,38 +1,113 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { Button, Flex, Input, Modal, Pagination, Radio, Switch, Typography } from "antd";
+import {
+  Button,
+  Flex,
+  Input,
+  Modal,
+  Pagination,
+  Radio,
+  Switch,
+  Typography,
+} from "antd";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  deleteAsyncUser,
+  fetchAsyncUsers,
+  getAllUsers,
+  searchAsyncUsers,
+  setUsers,
+  updateAsyncUser,
+} from "../../toolkit/users/usersSlice";
+import "./homeStyles.css";
+import { Settings } from "lucide-react";
+import { Plus } from "lucide-react";
 
 const Home = () => {
-  const [users, setUsers] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [showModel, setShowModel] = useState(false);
+  const users = useSelector(getAllUsers);
+  const dispatch = useDispatch();
+  const [modals, setModals] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
+
   useEffect(() => {
-    const fetchUsers = async () => {
-      const { data } = await axios.get(`/api/users`);
-      setUsers(data.users);
-      console.log(data);
-    };
-    fetchUsers();
-  }, []);
+    dispatch(fetchAsyncUsers());
+  }, [dispatch]);
+
   const displayUsers = users.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
+
   const handleUserClick = (user) => {
-    setSelectedUser(user);
-    // Open the modal
-    setShowModel(true);
+    setModals((prevModals) => [
+      ...prevModals,
+      { user, isVisible: true, data: { ...user } },
+    ]);
   };
-  const handleUpdate = ()=>{
-    console.log(selectedUser);
-  }
+
+  const handleUpdate = (modalIndex) => {
+    const updatedUser = modals[modalIndex].data;
+    dispatch(updateAsyncUser(updatedUser));
+    // Set the modal's visibility to false
+    setModals((prevModals) => {
+      const updatedModals = [...prevModals];
+      updatedModals[modalIndex].isVisible = false;
+      return updatedModals;
+    });
+    // Update the user's information in the local state to reflect the changes
+    const updatedUsers = users.map((user) => {
+      if (user._id === updatedUser._id) {
+        return updatedUser;
+      }
+      return user;
+    });
+    dispatch(setUsers(updatedUsers));
+    console.log(modals[modalIndex].data);
+  };
+
+  const handleDelete = (modalIndex) => {
+    const userToDelete = modals[modalIndex].data;
+
+    // Dispatch the deleteAsyncUser action directly
+    dispatch(deleteAsyncUser(userToDelete));
+
+    // Set the modal's visibility to false
+    setModals((prevModals) => {
+      const updatedModals = [...prevModals];
+      updatedModals[modalIndex].isVisible = false;
+      return updatedModals;
+    });
+    // Remove the deleted user from the users array
+    const updatedUsers = users.filter((user) => user._id !== userToDelete._id);
+    dispatch(setUsers(updatedUsers));
+    console.log(userToDelete);
+  };
+
+  const handleClose = (modalIndex) => {
+    setModals((prevModals) => {
+      const updatedModals = [...prevModals];
+      updatedModals[modalIndex].isVisible = false;
+      return updatedModals;
+    });
+  };
+
+ 
+
+  const handleInputChange = (modalIndex, field, value) => {
+    setModals((prevModals) => {
+      const updatedModals = [...prevModals];
+      updatedModals[modalIndex].data[field] = value;
+      return updatedModals;
+    });
+  };
+
   return (
     <>
-      <div className="grid grid-cols-4 gap-2 m-3">
+
+
+      <div className="grid grid-cols-4 gap-2 p-3 bg-slate-500">
         {displayUsers &&
-          displayUsers.map((user) => (
+          displayUsers.map((user, index) => (
             <div
               key={user.id}
               className="w-full max-w-sm bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700"
@@ -45,16 +120,7 @@ const Home = () => {
                   type="button"
                   onClick={() => handleUserClick(user)}
                 >
-                  <span className="sr-only">Open dropdown</span>
-                  <svg
-                    className="w-5 h-5"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="currentColor"
-                    viewBox="0 0 16 3"
-                  >
-                    <path d="M2 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm6.041 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM14 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z" />
-                  </svg>
+                  <Settings />
                 </button>
               </div>
               <div className="flex flex-col items-center pb-10">
@@ -70,24 +136,18 @@ const Home = () => {
                   {user.domain}
                 </span>
                 <div className="flex mt-4 md:mt-6">
-                  <a
-                    href="#"
-                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                  >
-                    Add friend
-                  </a>
-                  <a
-                    href="#"
-                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-center text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-700 dark:focus:ring-gray-700 ms-3"
-                  >
-                    Message
-                  </a>
+                  <span class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">
+                    {user.gender}
+                  </span>
+                  <span class="bg-yellow-100 text-yellow-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300">
+                    {user.available ? "Available" : "Not Available"}
+                  </span>
                 </div>
               </div>
             </div>
           ))}
       </div>
-      <div className="flex justify-center mt-4">
+      <div className="flex justify-center p-4  bg-slate-500">
         <Pagination
           current={currentPage}
           total={users.length}
@@ -96,78 +156,92 @@ const Home = () => {
           showSizeChanger={false}
         />
       </div>
-      <Modal
-        title="User Details"
-        open={showModel}
-        onCancel={() => setShowModel(false)}
-        footer={
-          <>
-            <Button color="red">Delete</Button>
-            <Button color="green" onClick={handleUpdate}>
-              Update
-            </Button>
-          </>
-        }
-      >
-        {selectedUser && (
-          <Flex vertical gap={16}>
-            <div>
-              <Typography>First Name</Typography>
-              <Input
-                defaultValue={selectedUser.first_name}
-                onChange={(e) =>
-                  setSelectedUser({
-                    ...selectedUser,
-                    first_name: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div>
-              <Typography>Last Name</Typography>
-              <Input
-                defaultValue={selectedUser.last_name}
-                onChange={(e) =>
-                  setSelectedUser({
-                    ...selectedUser,
-                    last_name: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div>
-              <Typography>Domain</Typography>
-              <Input
-                defaultValue={selectedUser.domain}
-                onChange={(e) =>
-                  setSelectedUser({
-                    ...selectedUser,
-                    domain: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div>
-              <Typography>Gendre</Typography>
-              <Radio.Group>
-                <Radio value={1}>Male</Radio>
-                <Radio value={2}>Female</Radio>
-              </Radio.Group>
-            </div>
-            <div>
-              <Typography>Available</Typography>
-              <Switch
-                // checked={input}
-                checkedChildren="Available"
-                unCheckedChildren="Not Available"
-                // onChange={() => {
-                //   setInput(!input);
-                // }}
-              />
-            </div>
-          </Flex>
-        )}
-      </Modal>
+      {modals.map((modal, index) => (
+        <Modal
+          key={index}
+          title="User Details"
+          open={modal.isVisible}
+          onCancel={() => handleClose(index)}
+          footer={
+            <>
+              <Button onClick={() => handleDelete(index)} danger>
+                Delete
+              </Button>
+              <Button onClick={() => handleUpdate(index)}>Update</Button>
+            </>
+          }
+        >
+          {modal.data && (
+            <Flex vertical gap={16}>
+              <div>
+                <Typography>First Name</Typography>
+                <Input
+                  defaultValue={modal.data.first_name}
+                  onChange={(e) =>
+                    handleInputChange(index, "first_name", e.target.value)
+                  }
+                />
+              </div>
+              <div>
+                <Typography>Last Name</Typography>
+                <Input
+                  defaultValue={modal.data.last_name}
+                  onChange={(e) =>
+                    handleInputChange(index, "last_name", e.target.value)
+                  }
+                />
+              </div>
+              <div>
+                <Typography>Domain</Typography>
+                <Input
+                  defaultValue={modal.data.domain}
+                  onChange={(e) =>
+                    handleInputChange(index, "domain", e.target.value)
+                  }
+                />
+              </div>
+              <div>
+                <Typography>Email</Typography>
+                <Input
+                  defaultValue={modal.data.email}
+                  onChange={(e) =>
+                    handleInputChange(index, "email", e.target.value)
+                  }
+                />
+              </div>
+              <div>
+                <Typography>Gender</Typography>
+                <Radio.Group
+                  defaultValue={modal.data.gender}
+                  onChange={(e) =>
+                    handleInputChange(index, "gender", e.target.value)
+                  }
+                >
+                  <Radio value={"Male"}>Male</Radio>
+                  <Radio value={"Female"}>Female</Radio>
+                  <Radio value={"Agender"}>Agender</Radio>
+                  <Radio value={"Bigender"}>Bigender</Radio>
+                  <Radio value={"Polygender"}>Polygender</Radio>
+                  <Radio value={"Non-binary"}>Non-binary</Radio>
+                  <Radio value={"Genderfluid"}>Genderfluid</Radio>
+                  <Radio value={"Genderqueer"}>Genderqueer</Radio>
+                </Radio.Group>
+              </div>
+              <div>
+                <Typography>Available</Typography>
+                <Switch
+                  checked={modal.data.available}
+                  checkedChildren="Available"
+                  unCheckedChildren="Not Available"
+                  onChange={(e) =>
+                    handleInputChange(index, "available", !modal.data.available)
+                  }
+                />
+              </div>
+            </Flex>
+          )}
+        </Modal>
+      ))}
     </>
   );
 };
