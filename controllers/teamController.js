@@ -9,9 +9,9 @@ export const createTeam = async (req, res) => {
         .status(400)
         .json({ success: false, error: "Please add all the fields." });
     const team = await Teams.create(req.body);
-    res.status(201).json({ team,success: true });
+    res.status(201).json({ team, success: true });
   } catch (error) {
-    res.status(500).json({ success:false });
+    res.status(500).json({ success: false });
   }
 };
 
@@ -20,12 +20,20 @@ export const getSingleTeam = async (req, res) => {
   try {
     const { id } = req.params;
     if (!id)
-      return res
-        .status(400)
-        .json({ success: false, error: "ID is required" });
+      return res.status(400).json({ success: false, error: "ID is required" });
     const team = await Teams.findById(id).populate("members");
-    res.status(201).json({ team,success: true });
+    res.status(201).json({ team, success: true });
   } catch (error) {
-    res.status(500).json({ success:false });
+    res.status(500).json({ success: false });
+  }
+};
+
+// getting all team
+export const getAllTeams = async (req, res) => {
+  try {
+    const team = await Teams.find({}).populate("members");
+    res.status(201).json({ team, success: true });
+  } catch (error) {
+    res.status(500).json({ success: false });
   }
 };

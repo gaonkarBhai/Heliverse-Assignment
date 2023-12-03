@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   Button,
+  Checkbox,
   Flex,
   Input,
   Modal,
@@ -14,16 +15,19 @@ import {
   deleteAsyncUser,
   fetchAsyncUsers,
   getAllUsers,
-  searchAsyncUsers,
   setUsers,
   updateAsyncUser,
 } from "../../toolkit/users/usersSlice";
 import "./homeStyles.css";
 import { Settings } from "lucide-react";
-import { Plus } from "lucide-react";
+import Nav from "../../components/NavBar/Nav";
 
 const Home = () => {
   const users = useSelector(getAllUsers);
+  const [selectedDomain, setSelectedDomain] = useState([]);
+  const [selectedGender, setSelectedGender] = useState([]);
+  const [selectedAvailability, setSelectedAvailability] = useState([]);
+  const [displayUsers, setDisplayUsers] = useState([]);
   const dispatch = useDispatch();
   const [modals, setModals] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -33,7 +37,29 @@ const Home = () => {
     dispatch(fetchAsyncUsers());
   }, [dispatch]);
 
-  const displayUsers = users.slice(
+  useEffect(() => {
+    // Update displayUsers when filters change
+    const filteredUsers = users
+      .filter(
+        (user) =>
+          selectedDomain.length === 0 || selectedDomain.includes(user.domain)
+      )
+      .filter(
+        (user) =>
+          selectedGender.length === 0 || selectedGender.includes(user.gender)
+      )
+      .filter(
+        (user) =>
+          selectedAvailability.length === 0 ||
+          selectedAvailability.includes(user.available)
+      );
+
+    setDisplayUsers(filteredUsers);
+    setCurrentPage(1); // Reset to the first page when filters change
+  }, [selectedDomain, selectedGender, selectedAvailability, users]);
+
+  // Move the slicing after updating displayUsers
+  const paginatedUsers = displayUsers.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
@@ -91,8 +117,6 @@ const Home = () => {
     });
   };
 
- 
-
   const handleInputChange = (modalIndex, field, value) => {
     setModals((prevModals) => {
       const updatedModals = [...prevModals];
@@ -101,13 +125,56 @@ const Home = () => {
     });
   };
 
+  const handleCheckboxChange = (filterType, value) => {
+    switch (filterType) {
+      case "domain":
+        setSelectedDomain(value);
+        break;
+      case "gender":
+        setSelectedGender(value);
+        break;
+      case "availability":
+        setSelectedAvailability(value);
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
     <>
+      <Nav />
 
+      <div className="flex justify-between p-3 rounded bg-slate-500 m-1">
+        <Checkbox.Group
+          onChange={(values) => handleCheckboxChange("domain", values)}
+        >
+          <Checkbox value="Management">Management</Checkbox>
+          <Checkbox value="UI Designing">UI Designing</Checkbox>
+          <Checkbox value="Sales">Sales</Checkbox>
+          <Checkbox value="Finance">Finance</Checkbox>
+          <Checkbox value="IT">IT</Checkbox>
+          <Checkbox value="Marketing">Marketing</Checkbox>
+          {/* Add more checkboxes for domains */}
+        </Checkbox.Group>
+        <Checkbox.Group
+          onChange={(values) => handleCheckboxChange("gender", values)}
+        >
+          <Checkbox value="Male">Male</Checkbox>
+          <Checkbox value="Female">Female</Checkbox>
+          {/* Add more checkboxes for genders */}
+        </Checkbox.Group>
+        <Checkbox.Group
+          onChange={(values) => handleCheckboxChange("availability", values)}
+        >
+          <Checkbox value={true}>Available</Checkbox>
+          <Checkbox value={false}>Not Available</Checkbox>
+        </Checkbox.Group>
+      </div>
 
-      <div className="grid grid-cols-4 gap-2 p-3 bg-slate-500">
-        {displayUsers &&
-          displayUsers.map((user, index) => (
+      <div className="grid grid-cols-1 gap-1 place-items-center md:pt-4 md:grid-cols-4 items-center xl:grid-cols-4 bg-slate-500">
+        {paginatedUsers &&
+          paginatedUsers.map((user, index) => (
             <div
               key={user.id}
               className="w-full max-w-sm bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700"
@@ -150,7 +217,7 @@ const Home = () => {
       <div className="flex justify-center p-4  bg-slate-500">
         <Pagination
           current={currentPage}
-          total={users.length}
+          total={displayUsers.length}
           pageSize={pageSize}
           onChange={(page) => setCurrentPage(page)}
           showSizeChanger={false}

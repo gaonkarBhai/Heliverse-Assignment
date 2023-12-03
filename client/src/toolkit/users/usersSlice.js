@@ -3,6 +3,7 @@ import axios from "axios";
 
 const initialState = {
   users: [],
+  allUsers: [],
 };
 
 export const fetchAsyncUsers = createAsyncThunk(
@@ -14,14 +15,15 @@ export const fetchAsyncUsers = createAsyncThunk(
   }
 );
 
-
 export const searchAsyncUsers = createAsyncThunk(
   "users/searchAsyncUsers",
-  async (searchInput) => {
-    const { data } = await axios.get(`/api/users`);
+  async (searchInput, { getState }) => {
+    const allUsers = getState().users.allUsers; // Access allUsers from the state
+    if (searchInput === "") return allUsers;
+
     const lowerSearchInput = searchInput.toLowerCase();
 
-    const filteredUsers = data.users.filter(
+    const filteredUsers = allUsers.filter(
       (user) =>
         user.first_name.toLowerCase().includes(lowerSearchInput) ||
         user.last_name.toLowerCase().includes(lowerSearchInput)
@@ -43,7 +45,7 @@ export const deleteAsyncUser = createAsyncThunk(
 );
 
 export const updateAsyncUser = createAsyncThunk(
-  "users/deleteAsyncUsers",
+  "users/updateAsyncUsers",
   async (user) => {
     const { data } = await axios.put(`/api/users/${user._id}`,user);
     console.log(data);
@@ -51,22 +53,28 @@ export const updateAsyncUser = createAsyncThunk(
   }
 );
 
+
+
 const usersSlice = createSlice({
   name: "users",
   initialState,
   reducers: {
     setUsers(state, action) {
       state.users = action.payload;
+      state.allUsers = action.payload;
     },
     deleteUser(state, action) {
       state.users = action.payload;
+      state.allUsers = action.payload;
     },
     updateUser(state, action) {
       state.users = action.payload;
+      state.allUsers = action.payload;
     },
     searchUser(state, action) {
       state.users = action.payload;
     },
+
   },
   extraReducers: {
     [fetchAsyncUsers.pending]: () => {
@@ -74,7 +82,7 @@ const usersSlice = createSlice({
     },
     [fetchAsyncUsers.fulfilled]: (state, { payload }) => {
       console.log("users fetched successfully");
-      return { ...state, users: payload };
+      return { ...state, users: payload, allUsers: payload };
     },
     [fetchAsyncUsers.rejected]: () => {
       console.log("rejected");
@@ -85,6 +93,7 @@ const usersSlice = createSlice({
     [updateAsyncUser.fulfilled]: () => {
       console.log("user updated successfully");
     },
+
     [searchAsyncUsers.fulfilled]: (state, { payload }) => {
       console.log("user search successfully");
       return { ...state, users: payload };
