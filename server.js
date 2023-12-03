@@ -6,7 +6,7 @@ import connectDB from "./config/conn.js";
 import color from 'colors'
 import userRoutes from './routes/usersRoute.js'
 import teamRoutes from './routes/teamRoutes.js'
-
+import path from 'path'
 dotenv.config(); //configure env
 
 const app = express(); //rest object
@@ -18,13 +18,13 @@ connectDB(); // connect to database
 app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
-
+app.use(express.static(path.join(__dirname,'./client/build')))
 // routes
 app.use("/api", userRoutes);
 app.use("/api", teamRoutes);
 
-app.get("/", (req, res) => {
-  res.status(200).json({ message: "Happy Coding!" });
+app.use("*", function(req, res) {
+  res.sendFile(path.join(__dirname, "./client/build/index.html"));
 });
 
 const PORT = process.env.PORT || 8000;
