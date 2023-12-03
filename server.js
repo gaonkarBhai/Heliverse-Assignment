@@ -7,12 +7,16 @@ import color from 'colors'
 import userRoutes from './routes/usersRoute.js'
 import teamRoutes from './routes/teamRoutes.js'
 import path from 'path'
+import { fileURLToPath } from "url";
 dotenv.config(); //configure env
+
 
 const app = express(); //rest object
 
 connectDB(); // connect to database
 
+const __fileName = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__fileName);
 
 // setup middlewares
 app.use(cors());
