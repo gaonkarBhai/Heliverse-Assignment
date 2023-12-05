@@ -14,7 +14,7 @@ const CreateTeam = () => {
   const [options, setOptions] = useState([]);
 
   const handleCreate = () => {
-    console.log({ name: teamName, members });
+    // console.log({ name: teamName, members });
     dispatch(createAsyncTeam({ name: teamName, members }));
     setTeamName("");
     setMembers([]);
@@ -24,36 +24,38 @@ const CreateTeam = () => {
   const existingUsers = useSelector(getAllUsers);
 
   useEffect(() => {
-    setOptions(
-      existingUsers
-        .filter((user) => user.available)
-        .map((user) => ({
-          label: user.first_name,
-          value: user._id,
-        }))
-    );
+    if (!existingUsers) return;
+      setOptions(
+        existingUsers
+          .filter((user) => user.available)
+          .map((user) => ({
+            label: user.first_name,
+            value: user._id,
+          }))
+      );
   }, [existingUsers]);
 
   const handleChange = (value) => {
-    console.log(value);
-    const selectedUsers = existingUsers.filter((user) =>
-      value.includes(user._id)
+    const selectedUsers = existingUsers.filter(
+      (user) => value.includes(user._id) && user.available
     );
+
     const uniqueDomains = [
       ...new Set(selectedUsers.map((user) => user.domain)),
     ];
 
     const filteredOptions = existingUsers
-      .filter((user) => !uniqueDomains.includes(user.domain))
+      .filter((user) => user.available && !uniqueDomains.includes(user.domain))
       .map((user) => ({
-        label: user.first_name, // <- Here you need to use user.first_name
+        label: user.first_name,
         value: user._id,
       }));
 
     setOptions(filteredOptions);
-    console.log(filteredOptions);
     setMembers(value);
   };
+
+
   return (
     <>
       <Button className="flex gap-1" onClick={() => setShowModal(true)}>

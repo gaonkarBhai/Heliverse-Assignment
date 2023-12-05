@@ -3,11 +3,13 @@ import { useDispatch } from "react-redux";
 import {
   fetchAsyncUsers,
   searchAsyncUsers,
+  setUsers,
 } from "../../toolkit/users/usersSlice";
 import { Button, Typography } from "antd";
 import CreateTeam from "../createTeam/CreateTeam";
-import { Link } from 'react-router-dom';
-import { Search } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Search, Users } from "lucide-react";
+
 const Nav = () => {
   const dispatch = useDispatch();
   const [searchInput, setSearchInput] = useState("");
@@ -30,6 +32,7 @@ const Nav = () => {
       dispatch(fetchAsyncUsers());
     } else {
       dispatch(searchAsyncUsers(input));
+      // dispatch(setUsers(data.users));
     }
   };
   return (
@@ -51,7 +54,12 @@ const Nav = () => {
         </form>
         <CreateTeam />
         <Typography>
-          <Link to="/team">Teams</Link>
+          <Link to="/team">
+            <Button className="flex gap-1">
+              <Users />
+              Teams
+            </Button>
+          </Link>
         </Typography>
       </div>
     </div>

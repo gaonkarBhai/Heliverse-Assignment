@@ -1,5 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
+// import { useDispatch } from "react-redux";
+// const dispath = useDispatch();
 
 const initialState = {
   users: [],
@@ -10,36 +12,46 @@ export const fetchAsyncUsers = createAsyncThunk(
   "users/fetchAsyncUsers",
   async () => {
     const { data } = await axios.get(`/api/users`);
-    console.log(data);
+    // console.log(data);
+    return data.users;
+  }
+);
+
+export const fetchAsyncUsersQuery = createAsyncThunk(
+  "users/fetchAsyncUsers",
+  async ({ selectedDomain, selectedGender, selectedAvailability },{dispatch}) => {
+    const { data } = await axios.get(`/api/users/query`,{params: {
+          domain: selectedDomain,
+          gender: selectedGender,
+          available: selectedAvailability,
+        }});
+    // console.log(data);
+    dispatch(setUsers(data.users));
     return data.users;
   }
 );
 
 export const searchAsyncUsers = createAsyncThunk(
   "users/searchAsyncUsers",
-  async (searchInput, { getState }) => {
+  async (searchInput, { getState, dispatch }) => {
     const allUsers = getState().users.allUsers; // Access allUsers from the state
     if (searchInput === "") return allUsers;
-
-    const lowerSearchInput = searchInput.toLowerCase();
-
-    const filteredUsers = allUsers.filter(
-      (user) =>
-        user.first_name.toLowerCase().includes(lowerSearchInput) ||
-        user.last_name.toLowerCase().includes(lowerSearchInput)
-    );
-
-    console.log(filteredUsers);
-    return filteredUsers;
+    const { data } = await axios.get(`/api/user/${searchInput}`);
+    // console.log(data,searchInput);
+    if (data) {
+      dispatch(setUsers(data.user));
+      // console.log(data);
+      return data.users;
+    }
+    return null;
   }
 );
-
 
 export const deleteAsyncUser = createAsyncThunk(
   "users/deleteAsyncUsers",
   async (user) => {
     const { data } = await axios.delete(`/api/users/${user._id}`);
-    console.log(data);
+    // console.log(data);
     return data;
   }
 );
@@ -47,13 +59,11 @@ export const deleteAsyncUser = createAsyncThunk(
 export const updateAsyncUser = createAsyncThunk(
   "users/updateAsyncUsers",
   async (user) => {
-    const { data } = await axios.put(`/api/users/${user._id}`,user);
-    console.log(data);
+    const { data } = await axios.put(`/api/users/${user._id}`, user);
+    // console.log(data);
     return data;
   }
 );
-
-
 
 const usersSlice = createSlice({
   name: "users",
@@ -73,8 +83,8 @@ const usersSlice = createSlice({
     },
     searchUser(state, action) {
       state.users = action.payload;
+      state.allUsers = action.payload;
     },
-
   },
   extraReducers: {
     [fetchAsyncUsers.pending]: () => {
@@ -101,6 +111,7 @@ const usersSlice = createSlice({
   },
 });
 
-export const { setUsers, deleteUser,updateUser,searchUser } = usersSlice.actions;
+export const { setUsers, deleteUser, updateUser, searchUser } =
+  usersSlice.actions;
 export const getAllUsers = (state) => state.users.users;
 export default usersSlice.reducer;

@@ -14,6 +14,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   deleteAsyncUser,
   fetchAsyncUsers,
+  fetchAsyncUsersQuery,
   getAllUsers,
   setUsers,
   updateAsyncUser,
@@ -39,26 +40,23 @@ const Home = () => {
 
   useEffect(() => {
     // Update displayUsers when filters change
-    const filteredUsers = users
-      .filter(
-        (user) =>
-          selectedDomain.length === 0 || selectedDomain.includes(user.domain)
-      )
-      .filter(
-        (user) =>
-          selectedGender.length === 0 || selectedGender.includes(user.gender)
-      )
-      .filter(
-        (user) =>
-          selectedAvailability.length === 0 ||
-          selectedAvailability.includes(user.available)
-      );
-
-    setDisplayUsers(filteredUsers);
+    if (!users) return;
+    setDisplayUsers(users);
     setCurrentPage(1); // Reset to the first page when filters change
-  }, [selectedDomain, selectedGender, selectedAvailability, users]);
+  }, [users]);
 
-  // Move the slicing after updating displayUsers
+  useEffect(() => {
+    // console.log(selectedDomain, selectedGender, selectedAvailability);
+    dispatch(
+      fetchAsyncUsersQuery({
+        selectedDomain,
+        selectedGender,
+        selectedAvailability,
+      })
+      );
+      setDisplayUsers(users);
+      setCurrentPage(1); 
+  }, [selectedDomain, selectedGender, selectedAvailability]);
   const paginatedUsers = displayUsers.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
@@ -88,7 +86,7 @@ const Home = () => {
       return user;
     });
     dispatch(setUsers(updatedUsers));
-    console.log(modals[modalIndex].data);
+    // console.log(modals[modalIndex].data);
   };
 
   const handleDelete = (modalIndex) => {
@@ -106,7 +104,7 @@ const Home = () => {
     // Remove the deleted user from the users array
     const updatedUsers = users.filter((user) => user._id !== userToDelete._id);
     dispatch(setUsers(updatedUsers));
-    console.log(userToDelete);
+    // console.log(userToDelete);
   };
 
   const handleClose = (modalIndex) => {
@@ -155,7 +153,6 @@ const Home = () => {
           <Checkbox value="Finance">Finance</Checkbox>
           <Checkbox value="IT">IT</Checkbox>
           <Checkbox value="Marketing">Marketing</Checkbox>
-          {/* Add more checkboxes for domains */}
         </Checkbox.Group>
         <Checkbox.Group
           onChange={(values) => handleCheckboxChange("gender", values)}

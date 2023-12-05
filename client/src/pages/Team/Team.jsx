@@ -21,7 +21,7 @@ const Team = () => {
                     {ele.name}
                   </h1>
                 </div>
-                <div className="grid grid-cols-1 gap-8 mt-8 md:mt-16 md:grid-cols-2 xl:grid-cols-3">
+                <div className="grid grid-cols-1 place-items-center md:pt-4 md:grid-cols-4 items-center xl:grid-cols-4 gap-2">
                   {ele?.members?.map((user) => (
                     <div
                       key={user.id}
